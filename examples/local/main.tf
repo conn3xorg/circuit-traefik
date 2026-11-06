@@ -9,6 +9,18 @@ variable "second_site" {
   default = false
 }
 
+# CI sets these to install an older Traefik first, then upgrades to the
+# circuit's own pin by applying again without them.
+variable "traefik_version" {
+  type    = string
+  default = null
+}
+
+variable "checksums" {
+  type    = map(string)
+  default = null
+}
+
 locals {
   hosts = { box = "127.0.0.1" }
 }
@@ -73,6 +85,8 @@ module "traefik" {
   ssh_port             = var.port
   ssh_private_key_file = "./id_ed25519"
   ssh_known_hosts_file = "./known_hosts"
+  traefik_version      = var.traefik_version
+  checksums            = var.checksums
 
   # A container has no public DNS name to get a certificate for, so the
   # sites use Traefik's self-signed default. curl needs -k.

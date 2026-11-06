@@ -70,22 +70,9 @@ jobs:
           conn3x init
           conn3x apply -auto-approve
           conn3x plan -detailed-exitcode
-      # The site balances across both backends, over Traefik's self-signed
-      # default certificate, and plain HTTP redirects to HTTPS.
       - name: Fetch the site through Traefik
-        run: |
-          podman exec -i circuit-traefik sh -eu <<'EOF'
-          out=""
-          for _ in 1 2 3 4 5 6; do
-            out="$out $(curl -sSfk --resolve app.test:443:127.0.0.1 https://app.test/)"
-          done
-          echo "$out"
-          echo "$out" | grep -q 'backend a'
-          echo "$out" | grep -q 'backend b'
-          r=$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' -H 'Host: app.test' http://127.0.0.1/)
-          echo "$r"
-          echo "$r" | grep -Eq '^30[178] https://app.test/'
-          EOF
+        working-directory: examples/local
+        run: podman exec -i circuit-traefik sh < check.sh
       # A new site lands in the watched dynamic directory, so Traefik serves
       # it without a restart.
       - name: Add a site, then check it's served by the same process
@@ -102,6 +89,39 @@ jobs:
           curl -sSfk --resolve b.test:443:127.0.0.1 https://b.test/ | grep -qx 'backend b'
           EOF
           [ "$(podman exec circuit-traefik systemctl show -P MainPID traefik)" = "$pid" ]
+      # Restarting the container boots systemd again, so this checks Traefik
+      # comes back by itself, still serves the site, and the plan has nothing
+      # to do.
+      - name: Restart the host, then check the site and the plan
+        working-directory: examples/local
+        run: |
+          podman restart circuit-traefik
+          for _ in $(seq 60); do
+            case $(podman exec circuit-traefik systemctl is-system-running 2>/dev/null) in running|degraded) break ;; esac
+            sleep 1
+          done
+          podman exec -i circuit-traefik sh < check.sh
+          conn3x plan -detailed-exitcode -var second_site=true
+      # A fresh host gets the previous release, then the circuit's own pin is
+      # applied over it, the way someone raises traefik_version.
+      - name: Upgrade from Traefik 3.7.15 on a fresh host, then plan again with no changes
+        working-directory: examples/local
+        env:
+          CONTAINERFILE: ${{ github.workspace }}/conn3x/test/images/${{ matrix.distro }}/Containerfile
+        run: |
+          ./down.sh
+          ./up.sh
+          conn3x init
+          conn3x apply -auto-approve -var traefik_version=3.7.15 \
+            -var 'checksums={amd64="5b9f51199fcb7a3b5f7ae0f9dae8dcf01efadafd92c5fca96ea2822eca81f8e6",arm64="1866d8e831b95d14b599bb59eb20d2033b979c0cb1e347b48a0866a9b810454e"}'
+          podman exec circuit-traefik traefik version | grep -Eq '^Version: +3\.7\.15$'
+          conn3x apply -auto-approve
+          conn3x plan -detailed-exitcode
+          want=$(sed -n '/variable "traefik_version"/,/^}/s/.*default *= *"\(.*\)"/\1/p' ../../variables.tf)
+          podman exec circuit-traefik traefik version | grep -Eq "^Version: +$want\$"
+      - name: Check the upgraded Traefik serves the site
+        working-directory: examples/local
+        run: podman exec -i circuit-traefik sh < check.sh
       - name: Clean up
         if: always()
         working-directory: examples/local
