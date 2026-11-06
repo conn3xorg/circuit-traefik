@@ -127,6 +127,16 @@ circuit "traefik" {
     }
   }
 
+  # mkdir would make these with the login session's umask, and under
+  # circuit-hardening's 027 the traefik user couldn't reach its binary.
+  step "release_dir" {
+    for_each = toset(["/opt/traefik", local.bin_dir])
+    directory {
+      path = item.value
+      mode = "0755"
+    }
+  }
+
   step "download" {
     download {
       url    = "https://github.com/traefik/traefik/releases/download/v${var.traefik_version}/traefik_v${var.traefik_version}_linux_${local.arch[each.key]}.tar.gz"
@@ -147,6 +157,15 @@ circuit "traefik" {
     link {
       path   = "/usr/local/bin/traefik"
       target = "${local.bin_dir}/traefik"
+    }
+  }
+
+  # Made here rather than by mkdir for the same reason: traefik reads its
+  # config as its own user.
+  step "etc_dir" {
+    directory {
+      path = "/etc/traefik"
+      mode = "0755"
     }
   }
 
