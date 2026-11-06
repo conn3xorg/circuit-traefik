@@ -10,7 +10,7 @@ Sites live in a file Traefik watches, so adding or changing one takes effect wit
 
 ```hcl
 module "traefik" {
-  source = "github.com/conn3xorg/circuit-traefik?ref=v0.1.1"
+  source = "github.com/conn3xorg/circuit-traefik?ref=v0.1.2"
 
   hosts                = { edge = "203.0.113.10" }
   ssh_private_key_file = "~/.ssh/id_ed25519"
