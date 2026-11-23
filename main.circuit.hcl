@@ -226,8 +226,8 @@ circuit "traefik" {
   # rather than a handler because handlers run after every step, and the
   # ready check below has to see Traefik running with the new config.
   step "restart" {
-    command {
-      command = "systemctl daemon-reload && systemctl restart traefik"
+    service_action {
+      name = "traefik"
       triggers = {
         version = var.traefik_version
         static  = conn3x_file.traefik__static[each.key].revision

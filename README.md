@@ -123,7 +123,7 @@ The `docker` group has to exist before this circuit runs, so put `depends_on = [
 
 ## Requirements
 
-Requires Conn3x v0.6.7 or later and systemd on each host, with outbound HTTPS to github.com, and to Let's Encrypt when `acme_email` is set.
+Requires Conn3x v0.28.0 or later and systemd on each host, with outbound HTTPS to github.com, and to Let's Encrypt when `acme_email` is set.
 
 ## Tested on
 
