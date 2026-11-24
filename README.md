@@ -48,7 +48,7 @@ On each host, in order:
 
 1. Installs curl, tar and gzip if they're missing.
 2. Creates the `traefik` system user, with `/var/lib/traefik` as its home, mode `0700`. Traefik keeps its Let's Encrypt account and certificates there, in `acme.json`, which it creates with mode `0600`.
-3. Downloads the Traefik 3.7.16 release tarball for the host's architecture from GitHub, checks it against a pinned SHA-256, unpacks it to `/opt/traefik/3.7.16` and links `/usr/local/bin/traefik` to it.
+3. Downloads the Traefik 3.7.20 release tarball for the host's architecture from GitHub, checks it against a pinned SHA-256, unpacks it to `/opt/traefik/3.7.20` and links `/usr/local/bin/traefik` to it.
 4. Writes the static config to `/etc/traefik/traefik.yml`: entry point `web` on port 80, which redirects to `websecure` on 443; the file provider watching `/etc/traefik/dynamic`; and, depending on the inputs, the Let's Encrypt resolver, the dashboard, the access log and the Docker provider. Traefik's update check and anonymous usage reports are off.
 5. Writes `sites` to `/etc/traefik/dynamic/conn3x.yml`, one router and one load-balanced service per site.
 6. Writes `/etc/systemd/system/traefik.service`. Traefik runs as `traefik` with only `CAP_NET_BIND_SERVICE`, which lets it bind ports 80 and 443, and with the filesystem read-only apart from `/var/lib/traefik`.
@@ -104,8 +104,8 @@ The `docker` group has to exist before this circuit runs, so put `depends_on = [
 | `ssh_private_key_file` | string | `null` | Path to a private key. When null, Conn3x uses the SSH agent. |
 | `ssh_known_hosts_file` | string | `null` | known_hosts file to check host keys against. When null, `~/.ssh/known_hosts`. Not used for a host object with `host_key`. |
 | `ssh_become` | bool | `false` | Run commands as root through sudo. Set it when `ssh_user` isn't root. |
-| `traefik_version` | string | `"3.7.16"` | Traefik 3 release to install, without the leading v. |
-| `checksums` | map(string) | the 3.7.16 tarballs | SHA-256 of the release tarball for `amd64` and `arm64`, from the release's `traefik_vVERSION_checksums.txt`. Change these with `traefik_version`. |
+| `traefik_version` | string | `"3.7.20"` | Traefik 3 release to install, without the leading v. |
+| `checksums` | map(string) | the 3.7.20 tarballs | SHA-256 of the release tarball for `amd64` and `arm64`, from the release's `traefik_vVERSION_checksums.txt`. Change these with `traefik_version`. |
 | `sites` | map(object) | `{}` | Sites to route, by name: letters, digits, `-` and `_`. Each takes `host`, the name it answers to, such as `"photos.example.com"`, and `backends`, a list of URLs such as `["http://127.0.0.1:2283"]`. |
 | `acme_email` | string | `null` | Email address for the Let's Encrypt account. When set, Traefik gets a certificate for each site. When null, sites use Traefik's self-signed default certificate. |
 | `acme_staging` | bool | `false` | Get certificates from Let's Encrypt's staging server, which browsers don't trust but which has far higher rate limits. |
@@ -119,7 +119,7 @@ The `docker` group has to exist before this circuit runs, so put `depends_on = [
 | --- | --- |
 | `static_config` | The static configuration the circuit writes to `/etc/traefik/traefik.yml`. |
 | `dynamic_config` | The routers and services the circuit writes to `/etc/traefik/dynamic/conn3x.yml`. |
-| `version` | The Traefik version the circuit installs, such as `"3.7.16"`. |
+| `version` | The Traefik version the circuit installs, such as `"3.7.20"`. |
 
 ## Requirements
 

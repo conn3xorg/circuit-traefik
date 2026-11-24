@@ -30,13 +30,13 @@ variable "ssh_become" {
 
 variable "traefik_version" {
   type        = string
-  default     = "3.7.16"
+  default     = "3.7.20"
   nullable    = false
   description = "Traefik release to install, without the leading v. Raising it upgrades Traefik in place. Null means the default."
 
   validation {
     condition     = can(regex("^3\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.]+)?$", var.traefik_version))
-    error_message = "traefik_version is a Traefik 3 release number without the leading v, such as \"3.7.16\"."
+    error_message = "traefik_version is a Traefik 3 release number without the leading v, such as \"3.7.20\"."
   }
 }
 
@@ -45,8 +45,8 @@ variable "checksums" {
   description = "SHA-256 of the release tarball for each architecture, from the release's checksums file. Change these with traefik_version. Null means the default."
   nullable    = false
   default = {
-    amd64 = "759a7bc0d66b74c588255ed9e41c7f9d4aba60bdb7bce9dde551b1268a55eb07"
-    arm64 = "8f9463a7dd3a618569aaa46e19500331d7374a2e6f6ee300a50df5bb49132e1a"
+    amd64 = "389736d8b121d4d41e044294df03ba4d8fe4ea3744e38ae270c10fbdaab8e10a"
+    arm64 = "123f4163c0c833054d3cb6087006011a8db13fcdb2ee8c18c5c6a711710fa38e"
   }
 }
 
